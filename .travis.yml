@@ -38,7 +38,7 @@ jobs:
       - yarn
     deploy:
       provider: script
-      script: yarn run publish:next
+      script: yarn runTask publish:next
       on:
         branch: master
       skip_cleanup: true

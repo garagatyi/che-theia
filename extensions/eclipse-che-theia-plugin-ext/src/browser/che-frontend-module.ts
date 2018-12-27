@@ -11,8 +11,15 @@
 import { ContainerModule } from 'inversify';
 import { MainPluginApiProvider } from '@theia/plugin-ext/lib/common/plugin-ext-api-contribution';
 import { CheMainApiProvider } from './che-api-main';
-import { CheApiService, CheApiServicePath } from '../common/che-protocol';
+import {
+    CheApiService,
+    CheApiServicePath,
+    CheTaskService,
+    CHE_TASK_SERVICE_PATH,
+    CheTaskClient
+} from '../common/che-protocol';
 import { WebSocketConnectionProvider } from '@theia/core/lib/browser';
+import { CheTaskClientImpl } from "./che-task-client";
 
 export default new ContainerModule(bind => {
     bind(CheMainApiProvider).toSelf().inSingletonScope();
@@ -21,5 +28,12 @@ export default new ContainerModule(bind => {
     bind(CheApiService).toDynamicValue(ctx => {
         const provider = ctx.container.get(WebSocketConnectionProvider);
         return provider.createProxy<CheApiService>(CheApiServicePath);
+    }).inSingletonScope();
+
+    bind(CheTaskClient).to(CheTaskClientImpl).inSingletonScope();
+    bind(CheTaskService).toDynamicValue(ctx => {
+        const provider = ctx.container.get(WebSocketConnectionProvider);
+        const client: CheTaskClient = ctx.container.get(CheTaskClient);
+        return provider.createProxy<CheTaskService>(CHE_TASK_SERVICE_PATH, client);
     }).inSingletonScope();
 });

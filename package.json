@@ -10,6 +10,7 @@
   },
   "workspaces": [
     "extensions/*",
-    "plugins/*"
+    "plugins/*",
+    "browser-app"
   ]
 }
