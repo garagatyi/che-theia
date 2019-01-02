@@ -21,6 +21,7 @@ import {
 import { CheApiPluginImpl } from './che-workspace';
 import { CheVariablesImpl } from './che-variables-impl';
 import { PLUGIN_RPC_CONTEXT } from '../common/che-protocol';
+import { CheTaskImpl } from './che-task-impl';
 export interface ApiFactory {
     (plugin: Plugin): typeof che;
 }
@@ -28,6 +29,7 @@ export interface ApiFactory {
 export function createAPIFactory(rpc: RPCProtocol): ApiFactory {
     const chePluginImpl = new CheApiPluginImpl(rpc);
     const cheVariablesImpl = rpc.set(PLUGIN_RPC_CONTEXT.CHE_VARIABLES, new CheVariablesImpl(rpc));
+    const cheTaskImpl = rpc.set(PLUGIN_RPC_CONTEXT.CHE_TASK, new CheTaskImpl(rpc));
 
     return function (plugin: Plugin): typeof che {
         const ws: typeof che.workspace = {
@@ -82,10 +84,20 @@ export function createAPIFactory(rpc: RPCProtocol): ApiFactory {
             }
         };
 
+        const task: typeof che.task = {
+            registerTaskRunner(type: string, runner: che.TaskRunner): Promise<che.Disposable> {
+                return cheTaskImpl.registerTaskRunner(type, runner);
+            },
+            fireTaskExited(id: number): Promise<void> {
+                return cheTaskImpl.fireTaskExited(id);
+            }
+        };
+
         return <typeof che>{
             workspace: ws,
             factory,
-            variables: variable
+            variables: variable,
+            task
         };
     };
 }
