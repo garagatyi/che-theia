@@ -7,6 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
+
 import * as che from '@eclipse-che/plugin';
 import { RPCProtocol } from '@theia/plugin-ext/lib/api/rpc-protocol';
 import { Plugin } from '@theia/plugin-ext/lib/api/plugin-api';
@@ -18,67 +19,69 @@ import {
     Variable,
     Disposable
 } from '@eclipse-che/plugin';
-import { CheApiPluginImpl } from './che-workspace';
-import { CheVariablesImpl } from './che-variables-impl';
+import { CheWorkspaceImpl } from './che-workspace';
+import { CheVariablesImpl } from './che-variables';
 import { PLUGIN_RPC_CONTEXT } from '../common/che-protocol';
+import { CheFactoryImpl } from './che-factory';
 import { CheTaskImpl } from './che-task-impl';
-export interface ApiFactory {
+
+export interface CheApiFactory {
     (plugin: Plugin): typeof che;
 }
 
-export function createAPIFactory(rpc: RPCProtocol): ApiFactory {
-    const chePluginImpl = new CheApiPluginImpl(rpc);
+export function createAPIFactory(rpc: RPCProtocol): CheApiFactory {
+    const cheWorkspaceImpl = rpc.set(PLUGIN_RPC_CONTEXT.CHE_WORKSPACE, new CheWorkspaceImpl(rpc));
+    const cheFactoryImpl = rpc.set(PLUGIN_RPC_CONTEXT.CHE_FACTORY, new CheFactoryImpl(rpc));
     const cheVariablesImpl = rpc.set(PLUGIN_RPC_CONTEXT.CHE_VARIABLES, new CheVariablesImpl(rpc));
     const cheTaskImpl = rpc.set(PLUGIN_RPC_CONTEXT.CHE_TASK, new CheTaskImpl(rpc));
 
     return function (plugin: Plugin): typeof che {
-        const ws: typeof che.workspace = {
+        const workspace: typeof che.workspace = {
             getCurrentWorkspace(): Promise<Workspace> {
-                return chePluginImpl.getCurrentWorkspace();
+                return cheWorkspaceImpl.getCurrentWorkspace();
             },
             getAll(): Promise<Workspace[]> {
-                return chePluginImpl.getAll();
+                return cheWorkspaceImpl.getAll();
             },
             getAllByNamespace(namespace: string): Promise<Workspace[]> {
-                return chePluginImpl.getAllByNamespace(namespace);
+                return cheWorkspaceImpl.getAllByNamespace(namespace);
             },
             getById(workspaceKey: string): Promise<Workspace> {
-                return chePluginImpl.getById(workspaceKey);
+                return cheWorkspaceImpl.getById(workspaceKey);
             },
             create(config: WorkspaceConfig, params: ResourceCreateQueryParams): Promise<any> {
-                return chePluginImpl.create(config, params);
+                return cheWorkspaceImpl.create(config, params);
             },
             update(workspaceId: string, workspace: Workspace): Promise<any> {
-                return chePluginImpl.update(workspaceId, workspace);
+                return cheWorkspaceImpl.update(workspaceId, workspace);
             },
             deleteWorkspace(workspaceId: string): Promise<any> {
-                return chePluginImpl.deleteWorkspace(workspaceId);
+                return cheWorkspaceImpl.deleteWorkspace(workspaceId);
             },
             start(workspaceId: string, environmentName: string): Promise<any> {
-                return chePluginImpl.start(workspaceId, environmentName);
+                return cheWorkspaceImpl.start(workspaceId, environmentName);
             },
             startTemporary(config: WorkspaceConfig): Promise<any> {
-                return chePluginImpl.startTemporary(config);
+                return cheWorkspaceImpl.startTemporary(config);
             },
             stop(workspaceId: string): Promise<any> {
-                return chePluginImpl.stop(workspaceId);
+                return cheWorkspaceImpl.stop(workspaceId);
             },
             getSettings(): Promise<WorkspaceSettings> {
-                return chePluginImpl.getSettings();
+                return cheWorkspaceImpl.getSettings();
             }
         };
 
         const factory: typeof che.factory = {
             getById(id: string): PromiseLike<che.Factory> {
-                return chePluginImpl.getFactoryById(id);
+                return cheFactoryImpl.getFactoryById(id);
             }
         };
 
-        const variable: typeof che.variables = {
+        const variables: typeof che.variables = {
             registerVariable(variable: Variable): Promise<Disposable> {
                 return cheVariablesImpl.registerVariable(variable);
             },
-
             resolve(value: string): Promise<string | undefined> {
                 return cheVariablesImpl.resolve(value);
             }
@@ -94,10 +97,11 @@ export function createAPIFactory(rpc: RPCProtocol): ApiFactory {
         };
 
         return <typeof che>{
-            workspace: ws,
+            workspace,
             factory,
-            variables: variable,
+            variables: variables,
             task
         };
     };
+
 }
