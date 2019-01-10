@@ -60,7 +60,6 @@ export interface CheTask {
     fireTaskExited(id: number): Promise<void>;
     $runTask(id: number, config: che.TaskConfiguration, ctx?: string): Promise<void>;
     $killTask(id: number): Promise<void>;
-    $killTask(id: number): Promise<void>;
     $getTaskInfo(id: number): Promise<che.TaskInfo | undefined>;
 }
 

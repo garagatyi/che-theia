@@ -32,7 +32,7 @@ export class CheTaskServiceImpl implements CheTaskService {
 
     async registerTaskRunner(type: string): Promise<void> {
         const runner = {
-            async run(taskConfig: TaskConfiguration, ctx?: string): Promise<Task> {
+            run(taskConfig: TaskConfiguration, ctx?: string): Promise<Task> {
                 return runTask(taskConfig, ctx);
             }
         };
