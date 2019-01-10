@@ -13,8 +13,8 @@
         "src"
     ],
     "dependencies": {
-        "@theia/core": "0.3.18",
-        "@theia/plugin-ext": "0.3.18",
+        "@theia/core": "0.4.0-next.b0064648",
+        "@theia/plugin-ext": "0.4.0-next.b0064648",
         "@eclipse-che/plugin": "^0.0.1-1545399167",
         "@eclipse-che/workspace-client": "^0.0.1-1546509769"
     },
